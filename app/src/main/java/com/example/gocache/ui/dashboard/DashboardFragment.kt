@@ -36,10 +36,10 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap?) {
         mMap = googleMap!!
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(60.258584,24.844100)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        // Add a marker in Myyrmäki campus and move the camera
+        val campus = LatLng(60.258584,24.844100)
+        mMap.addMarker(MarkerOptions().position(campus).title("Marker in Myyrmäki campus"))
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(campus))
     }
 
 }
