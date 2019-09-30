@@ -1,31 +1,45 @@
 package com.example.gocache.ui.dashboard
 
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import com.example.gocache.R
+import com.google.android.gms.maps.*
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 
-class DashboardFragment : Fragment() {
 
-    private lateinit var dashboardViewModel: DashboardViewModel
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        dashboardViewModel =
-            ViewModelProviders.of(this).get(DashboardViewModel::class.java)
-        val root = inflater.inflate(R.layout.fragment_dashboard, container, false)
-        val textView: TextView = root.findViewById(R.id.text_dashboard)
-        dashboardViewModel.text.observe(this, Observer {
-            textView.text = it
-        })
-        return root
+class DashboardFragment : Fragment(), OnMapReadyCallback {
+
+    private lateinit var mMap: GoogleMap
+
+    companion object {
+        var mapFragment : SupportMapFragment?=null
+        val TAG: String = MapFragment::class.java.simpleName
+        fun newInstance() = MapFragment()
     }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
+        // Inflate the layout for this fragment
+        var rootView = inflater.inflate(R.layout.fragment_dashboard, container, false)
+
+        mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+        mapFragment?.getMapAsync(this)
+
+        return rootView
+    }
+
+    override fun onMapReady(googleMap: GoogleMap?) {
+        mMap = googleMap!!
+        // Add a marker in Sydney and move the camera
+        val sydney = LatLng(60.258584,24.844100)
+        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+    }
+
 }
