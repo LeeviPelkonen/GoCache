@@ -52,7 +52,6 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
             override fun onLocationChanged(location: Location?) {
                 var latitute = location!!.latitude
                 var longitute = location!!.longitude
-
                 Log.i("test", "Latitute: $latitute ; Longitute: $longitute")
 
             }
@@ -79,9 +78,11 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap?) {
         mMap = googleMap!!
+        mMap.isMyLocationEnabled = true
         // Add a marker in Myyrmäki campus and move the camera
         val campus = LatLng(60.258584,24.844100)
         mMap.addMarker(MarkerOptions().position(campus).title("Marker in Myyrmäki campus"))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(campus))
+
     }
 }
