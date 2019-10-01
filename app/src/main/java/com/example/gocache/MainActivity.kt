@@ -1,8 +1,16 @@
 package com.example.gocache
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.ConnectivityManager
+import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -11,6 +19,8 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInput
 
 class MainActivity : AppCompatActivity() {
 
@@ -42,5 +52,53 @@ class MainActivity : AppCompatActivity() {
                 0
             )
         }
+        if (isNetworkAvailable()) {
+            val thread = Thread(Worker())
+            thread.run()
+        }
+    }
+
+    private fun isNetworkAvailable(): Boolean {
+        val cm = this.getSystemService(
+            Context.CONNECTIVITY_SERVICE
+        ) as ConnectivityManager
+        return cm.activeNetworkInfo?.isConnected == true
+    }
+
+    fun getData(): Bundle? {
+        return intent.extras
+    }
+
+    inner class Worker : Runnable {
+        override fun run() {
+            Log.d("LoginInfo", intent.extras?.get("picture").toString())
+            val bitmap: Bitmap = DownloadImageTask().execute(intent.getStringExtra("picture")).get()
+            Log.d("LoginInfo", bitmap.toString())
+            val stream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            val byteArray = stream.toByteArray()
+            intent.putExtra("bitmap", byteArray)
+        }
+    }
+}
+
+private class DownloadImageTask :
+    AsyncTask<String, Void, Bitmap>() {
+
+    override fun doInBackground(vararg urls: String): Bitmap? {
+        val urldisplay = urls[0]
+        var mIcon11: Bitmap? = null
+        try {
+            val `in` = java.net.URL(urldisplay).openStream()
+            mIcon11 = BitmapFactory.decodeStream(`in`)
+        } catch (e: Exception) {
+            Log.e("Error", e.message)
+            e.printStackTrace()
+        }
+
+        return mIcon11
+    }
+
+    override fun onPostExecute(result: Bitmap) {
     }
 }
