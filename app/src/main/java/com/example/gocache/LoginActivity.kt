@@ -9,13 +9,13 @@ import android.widget.Button
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import kotlinx.android.synthetic.main.activity_login.view.*
 
 class LoginActivity : AppCompatActivity() {
 
-    // Client ID for google login(OAuth client): 71030826346-0h97ljq07nsktjct9lb4egbomda96o1r.apps.googleusercontent.com
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +32,8 @@ class LoginActivity : AppCompatActivity() {
             startActivityForResult(signInIntent, 100)
         }
 
-        val signInButton = findViewById<com.google.android.gms.common.SignInButton>(R.id.sign_in_button)
+        val signInButton = findViewById<SignInButton>(R.id.sign_in_button)
+        signInButton.setSize(SignInButton.SIZE_WIDE)
         signInButton.setOnClickListener {
             when(it.id) {
                 R.id.sign_in_button -> signIn()
@@ -44,6 +45,10 @@ class LoginActivity : AppCompatActivity() {
         super.onStart()
 
         val account = GoogleSignIn.getLastSignedInAccount(this)
+
+        if (account != null) {
+
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -52,6 +57,7 @@ class LoginActivity : AppCompatActivity() {
         fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
             try {
                 val account: GoogleSignInAccount = completedTask.getResult(ApiException::class.java)!!
+                Log.d("LoginInfo", (account.displayName).toString() + " " + (account.email).toString())
             } catch (e: ApiException) {
                 Log.w("lofinFail", "signInresult: failed code=" + e.statusCode)
             }
