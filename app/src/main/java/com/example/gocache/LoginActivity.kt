@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import com.example.gocache.ui.home.HomeFragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -47,7 +48,8 @@ class LoginActivity : AppCompatActivity() {
         val account = GoogleSignIn.getLastSignedInAccount(this)
 
         if (account != null) {
-
+            Log.d("LoginInfo", account.displayName.toString())
+            updateUI(account)
         }
     }
 
@@ -68,5 +70,15 @@ class LoginActivity : AppCompatActivity() {
             handleSignInResult(task)
         }
 
+    }
+
+    private fun updateUI(v: GoogleSignInAccount) {
+        val info = Bundle()
+        info.putString("name", v.displayName)
+        info.putString("email", v.email)
+        info.putString("picture", v.photoUrl.toString())
+        val mainIntent = Intent(this, MainActivity::class.java)
+        mainIntent.putExtras(info)
+        startActivity(mainIntent)
     }
 }
