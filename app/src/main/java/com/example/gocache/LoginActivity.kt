@@ -77,7 +77,9 @@ class LoginActivity : AppCompatActivity() {
         val info = Bundle()
         info.putString("name", v.displayName)
         info.putString("email", v.email)
-        info.putString("picture", v.photoUrl.toString())
+        if (v.photoUrl != null) {
+            info.putString("picture", v.photoUrl.toString())
+        }
         val mainIntent = Intent(this, MainActivity::class.java)
         mainIntent.putExtras(info)
         startActivity(mainIntent)
