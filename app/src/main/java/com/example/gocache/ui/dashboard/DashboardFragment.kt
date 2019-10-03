@@ -27,7 +27,9 @@ import retrofit2.http.Query
 class DashboardFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
-    private lateinit var cacheList: ArrayList<String>
+    private lateinit var cacheList: ArrayList<Cache>
+
+    data class Cache(val name: String, val latitude: Double, val longitude: Double)
 
     companion object {
         var mapFragment : SupportMapFragment?=null
@@ -123,7 +125,6 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                 if (response != null) {
                     //Log.d("DBG", "$response")// just for the demo
                     var res: DemoApi.Model.DataResponse = response.body()!!
-                    cacheList = res.results
                     getAllCacheInfo(res.results)
                     //Log.d("DBG", "$res")// just for the demo
                 }
@@ -154,9 +155,10 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                     var res: DemoApi.Model.CacheInfoResponse = response.body()!!
 
                     //Log.d("DBG", "$res")// just for the demo
-                    val latitute = res.location.substringBefore("|").toDouble()
-                    val longitute = res.location.substringAfter("|").toDouble()
-                    mMap.addMarker(MarkerOptions().position(LatLng(latitute,longitute)).title(res.name))
+                    val latitude = res.location.substringBefore("|").toDouble()
+                    val longitude = res.location.substringAfter("|").toDouble()
+                    cacheList.add(Cache(res.name, latitude, longitude))
+                    mMap.addMarker(MarkerOptions().position(LatLng(latitude,longitude)).title(res.name))
                 }
             }
             override fun onFailure(call: Call<DemoApi.Model.CacheInfoResponse>, t: Throwable) {
