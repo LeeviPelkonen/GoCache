@@ -60,6 +60,7 @@ class LoginActivity : AppCompatActivity() {
             try {
                 val account: GoogleSignInAccount = completedTask.getResult(ApiException::class.java)!!
                 Log.d("LoginInfo", (account.displayName).toString() + " " + (account.email).toString())
+                updateUI(account)
             } catch (e: ApiException) {
                 Log.w("lofinFail", "signInresult: failed code=" + e.statusCode)
             }
