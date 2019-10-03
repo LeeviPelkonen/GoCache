@@ -2,6 +2,7 @@ package com.example.gocache.ui.home
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
@@ -11,15 +12,20 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.NonNull
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.example.gocache.LoginActivity
 import com.example.gocache.MainActivity
 import com.example.gocache.R
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
 import kotlinx.android.synthetic.*
 
 class HomeFragment : Fragment() {
@@ -40,8 +46,19 @@ class HomeFragment : Fragment() {
         textView.text = myDataFromActivity?.get("name").toString()
         val holder: ByteArray? = myDataFromActivity?.getByteArray("bitmap")
         if (holder != null) {
-            imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder!!.size))
+            imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder.size))
         }
         return root
+
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val logoutbutton = activity?.findViewById<Button>(R.id.sign_out_button)
+        logoutbutton?.setOnClickListener {
+            when (it.id) {
+                R.id.sign_out_button -> LoginActivity().signOut()
+            }
+        }
     }
 }
