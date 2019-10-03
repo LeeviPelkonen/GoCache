@@ -53,8 +53,11 @@ class MainActivity : AppCompatActivity() {
             )
         }
         if (isNetworkAvailable()) {
-            val thread = Thread(Worker())
-            thread.run()
+            Log.e("Eroro",intent.extras?.get("picture").toString())
+            if (intent.extras?.get("picture") != null) {
+                val thread = Thread(Worker())
+                thread.run()
+            }
         }
     }
 

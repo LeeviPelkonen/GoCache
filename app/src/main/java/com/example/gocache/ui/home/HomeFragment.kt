@@ -39,7 +39,9 @@ class HomeFragment : Fragment() {
         Log.d("LoginInfo", myDataFromActivity?.get("picture").toString())
         textView.text = myDataFromActivity?.get("name").toString()
         val holder: ByteArray? = myDataFromActivity?.getByteArray("bitmap")
-        imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder!!.size))
+        if (holder != null) {
+            imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder!!.size))
+        }
         return root
     }
 }
