@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications
             )
         )
+
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
         if ((Build.VERSION.SDK_INT >= 23 &&
@@ -46,12 +47,14 @@ class MainActivity : AppCompatActivity() {
                     ) !=
                     PackageManager.PERMISSION_GRANTED)
         ) {
+            Log.d("QWERTY",android.Manifest.permission.ACCESS_FINE_LOCATION)
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION),
                 0
             )
         }
+
         if (isNetworkAvailable()) {
             val thread = Thread(Worker())
             thread.run()
