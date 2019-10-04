@@ -22,6 +22,7 @@ import kotlinx.android.synthetic.main.activity_login.view.*
 
 class LoginActivity : AppCompatActivity() {
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -98,7 +99,15 @@ class LoginActivity : AppCompatActivity() {
         startActivity(mainIntent)
     }
 
-    fun signOut() {
+    fun signOut(context: Context) {
         Log.d("LoginInfo","pressed Signout" )
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .build()
+        val mGoogleSignInClient = GoogleSignIn.getClient(context, gso)
+        mGoogleSignInClient.signOut()
+            .addOnCompleteListener {
+                Log.d("LoginInfo", "worked")
+            }
     }
 }

@@ -56,9 +56,11 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val logoutbutton = activity?.findViewById<Button>(R.id.sign_out_button)
         logoutbutton?.setOnClickListener {
-            when (it.id) {
-                R.id.sign_out_button -> LoginActivity().signOut()
-            }
+            LoginActivity().signOut(context!!)
+            val loginIntent = Intent(context, LoginActivity::class.java)
+            Log.d("LoginInfo", context.toString())
+            startActivity(loginIntent)
+
         }
     }
 }
