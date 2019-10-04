@@ -44,6 +44,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
+        cacheList = ArrayList()
         getAllCaches()
 
         var locationManager =
