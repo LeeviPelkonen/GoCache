@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.os.AsyncTask
 import android.os.Bundle
@@ -47,6 +48,8 @@ class HomeFragment : Fragment() {
         val holder: ByteArray? = myDataFromActivity?.getByteArray("bitmap")
         if (holder != null) {
             imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder.size))
+        } else {
+            imgView.setImageResource(R.drawable.ic_mood_black_24dp)
         }
         return root
 
