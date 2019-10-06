@@ -1,16 +1,26 @@
 package com.example.gocache.ui.dashboard
 
 
+import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.text.style.BackgroundColorSpan
+import android.transition.Slide
+import android.transition.TransitionManager
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.*
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.gocache.MainActivity
 import com.example.gocache.R
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.BitmapDescriptor
@@ -18,6 +28,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_GREEN
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.android.synthetic.main.fragment_dashboard.*
+import kotlinx.android.synthetic.main.popup_layout.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -104,10 +116,61 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         return rootView
     }
 
+    fun popUp(name: String, comment: String){
+        Log.d("test","popup here!")
+        // Initialize a new layout inflater instance
+        val inflater:LayoutInflater = layoutInflater
+
+        // Inflate a custom view using layout inflater
+        val view = inflater.inflate(R.layout.popup_layout,null)
+
+        // Initialize a new instance of popup window
+        val popupWindow = PopupWindow(
+            view, // Custom view to show in popup window
+            LinearLayout.LayoutParams.MATCH_PARENT, // Width of popup window
+            LinearLayout.LayoutParams.WRAP_CONTENT // Window height
+        )
+
+        // Set an elevation for the popup window
+        popupWindow.elevation = 10.0F
+        // Create a new slide animation for popup window enter transition
+        val slideIn = Slide()
+        slideIn.slideEdge = Gravity.TOP
+        popupWindow.enterTransition = slideIn
+
+        // Slide animation for popup window exit transition
+        val slideOut = Slide()
+        slideOut.slideEdge = Gravity.END
+        popupWindow.exitTransition = slideOut
+
+
+        val cacheName = view.findViewById<TextView>(R.id.cacheName)
+        val cacheComment = view.findViewById<TextView>(R.id.cacheComment)
+        cacheName.text = name
+        cacheComment.text = comment
+
+        view.setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+
+        // Finally, show the popup window on app
+        TransitionManager.beginDelayedTransition(map_layout)
+        popupWindow.showAtLocation(
+            map_layout, // Location to display popup window
+            Gravity.CENTER, // Exact position of layout to display popup
+            50, // X offset
+            50 // Y offset
+        )
+    }
+
     override fun onMapReady(googleMap: GoogleMap?) {
         mMap = googleMap!!
         mMap.isMyLocationEnabled = true
-        // Add a marker in Myyrmäki campus and move the camera
+        mMap.setOnInfoWindowClickListener {
+            Log.d("test",it.title)
+            popUp(it.title,"this is the comment")
+        }
         val campus = LatLng(60.258584,24.844100)
        // mMap.addMarker(MarkerOptions().position(campus).title("Marker in Myyrmäki campus"))
         addCacheMarker(Cache("Campus",60.258584,24.844100,"asdfa",false))
