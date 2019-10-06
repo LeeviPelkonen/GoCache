@@ -28,6 +28,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_GREEN
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_dashboard.*
 import kotlinx.android.synthetic.main.popup_layout.*
 import retrofit2.Call
@@ -42,6 +43,7 @@ import java.net.URL
 
 class DashboardFragment : Fragment(), OnMapReadyCallback {
 
+    var closeToCache = false
     private lateinit var mMap: GoogleMap
     private lateinit var cacheList: ArrayList<Cache>
 
@@ -76,6 +78,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
 
                 var i = 0
                 //check if caches are nearby
+                closeToCache = false
                 while (i < cacheList.size){
                     val cacheLocation = Location("newLocation")
                     cacheLocation.latitude = cacheList[i].latitude
@@ -90,6 +93,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                             mMap.clear()
                             addAllCacheMarker()
                         }
+                        closeToCache = true
                         Log.d("test", "$distance distance in meters to a found cache")
                     }
                     i++
