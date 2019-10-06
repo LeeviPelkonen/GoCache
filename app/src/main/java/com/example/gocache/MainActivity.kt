@@ -103,9 +103,9 @@ class MainActivity : AppCompatActivity() {
             val con: java.sql.Connection
             var count = 0
             try {
-                Class.forName("com.mysql.jdbc.Driver")
+                Class.forName("com.mysql.cj.jdbc.Driver").newInstance()
                 con = DriverManager.getConnection(
-                    "jdbc:mysql:https://pma.veebimajutus.ee/pma/",
+                    "jdbc:mysql:///pma.veebimajutus.ee/pma/vhost76425s10:3306",
                     "vhost76425s10",
                     "Leevi19"
                 )
