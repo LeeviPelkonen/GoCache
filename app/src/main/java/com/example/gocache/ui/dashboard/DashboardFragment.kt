@@ -13,6 +13,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.gocache.R
 import com.google.android.gms.maps.*
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_GREEN
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import retrofit2.Call
@@ -22,6 +25,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.net.URL
 
 
 class DashboardFragment : Fragment(), OnMapReadyCallback {
@@ -29,7 +33,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var cacheList: ArrayList<Cache>
 
-    data class Cache(val name: String, val latitude: Double, val longitude: Double)
+    data class Cache(val name: String, val latitude: Double, val longitude: Double, val id: String, var found: Boolean)
 
     companion object {
         var mapFragment : SupportMapFragment?=null
@@ -46,15 +50,38 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         mapFragment?.getMapAsync(this)
         cacheList = ArrayList()
         getAllCaches()
+        cacheList.add(Cache("my buss stop",60.227997,24.819641,"aaddfs",false))
+        cacheList.add(Cache("my buss stop2",60.277997,24.899641,"aaddf2s",false))
 
         var locationManager =
             activity!!.getSystemService(LOCATION_SERVICE) as LocationManager
 
         var locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location?) {
-                var latitute = location!!.latitude
-                var longitute = location!!.longitude
-                Log.i("test", "Latitute: $latitute ; Longitute: $longitute")
+                var latitude = location!!.latitude
+                var longitude = location!!.longitude
+                Log.i("test", "Latitute: $latitude ; Longitute: $longitude")
+
+                var i = 0
+                //check if caches are nearby
+                while (i < cacheList.size){
+                    val cacheLocation = Location("newLocation")
+                    cacheLocation.latitude = cacheList[i].latitude
+                    cacheLocation.longitude = cacheList[i].longitude
+                    val distance = location.distanceTo(cacheLocation)
+
+                    //cache is max 25m away
+                    if (distance < 25){
+                        if (!cacheList[i].found){
+                            Log.d("test", "$distance distance in meters")
+                            cacheList[i].found=true
+                            mMap.clear()
+                            addAllCacheMarker()
+                        }
+                        Log.d("test", "$distance distance in meters to a found cache")
+                    }
+                    i++
+                }
 
             }
 
@@ -66,7 +93,6 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
 
             override fun onProviderDisabled(provider: String?) {
             }
-
         }
 
         try {
@@ -83,9 +109,35 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         mMap.isMyLocationEnabled = true
         // Add a marker in Myyrmäki campus and move the camera
         val campus = LatLng(60.258584,24.844100)
-        mMap.addMarker(MarkerOptions().position(campus).title("Marker in Myyrmäki campus"))
+       // mMap.addMarker(MarkerOptions().position(campus).title("Marker in Myyrmäki campus"))
+        addCacheMarker(Cache("Campus",60.258584,24.844100,"asdfa",false))
+        addCacheMarker(Cache("my buss stop",60.227997,24.819641,"aaddfs",false))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(campus))
+    }
 
+    fun addAllCacheMarker(){
+        var i = 0
+        while (i < cacheList.size){
+            addCacheMarker(cacheList[i])
+            i++
+        }
+    }
+
+    fun addCacheMarker(cache: Cache){
+        //cache has been found
+        if(cache.found) {
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(LatLng(cache.latitude, cache.longitude))
+                    .title(cache.name))
+                    .setIcon(BitmapDescriptorFactory.defaultMarker(HUE_GREEN))
+            //not found
+        }else{
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(LatLng(cache.latitude, cache.longitude))
+                    .title(cache.name))
+        }
     }
 
     object DemoApi {
@@ -158,8 +210,9 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                     //Log.d("DBG", "$res")// just for the demo
                     val latitude = res.location.substringBefore("|").toDouble()
                     val longitude = res.location.substringAfter("|").toDouble()
-                    cacheList.add(Cache(res.name, latitude, longitude))
-                    mMap.addMarker(MarkerOptions().position(LatLng(latitude,longitude)).title(res.name))
+                    val cache = Cache(res.name, latitude, longitude, res.code, false)
+                    cacheList.add(cache)
+                    addCacheMarker(cache)
                 }
             }
             override fun onFailure(call: Call<DemoApi.Model.CacheInfoResponse>, t: Throwable) {
