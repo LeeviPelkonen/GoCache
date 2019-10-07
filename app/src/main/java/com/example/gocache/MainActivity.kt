@@ -103,11 +103,10 @@ class MainActivity : AppCompatActivity() {
             val con: java.sql.Connection
             var count = 0
             try {
-                Class.forName("com.mysql.cj.jdbc.Driver").newInstance()
                 con = DriverManager.getConnection(
-                    "jdbc:mysql:///pma.veebimajutus.ee/pma/vhost76425s10:3306",
-                    "vhost76425s10",
-                    "Leevi19"
+                    "jdbc:mysql://84.249.13.252:3306/phpmyadmin/leevi",
+                    "leevi",
+                    "projekti123"
                 )
                 try {
                     val sql = "SELECT name FROM cache"
