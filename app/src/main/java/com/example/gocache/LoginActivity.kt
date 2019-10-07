@@ -94,6 +94,7 @@ class LoginActivity : AppCompatActivity() {
         if (v.photoUrl != null) {
             info.putString("picture", v.photoUrl.toString())
         }
+        info.putString("id", v.id)
         val mainIntent = Intent(this, MainActivity::class.java)
         mainIntent.putExtras(info)
         startActivity(mainIntent)

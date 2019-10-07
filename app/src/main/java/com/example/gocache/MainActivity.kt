@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
                 val thread = Thread(Worker())
                 val thread2 = Thread(Connection())
                 thread.run()
-                thread2.run()
+                // thread2.run()
             }
         }
     }
@@ -102,11 +102,14 @@ class MainActivity : AppCompatActivity() {
         override fun run() {
             val con: java.sql.Connection
             var count = 0
+            Log.e("QWERTY", "WE ARE HERE")
             try {
+                Log.e("QWERTY", "WE ARE HERE2")
                 con = DriverManager.getConnection(
-                    "jdbc:mysql://84.249.13.252:3306/phpmyadmin/leevi",
-                    "leevi",
-                    "projekti123"
+                "jdbc:mysql://84.249.13.252:3306",
+                "leevi",
+                "projekti123"
+
                 )
                 try {
                     val sql = "SELECT name FROM cache"
@@ -122,7 +125,7 @@ class MainActivity : AppCompatActivity() {
                 } catch (s: SQLException) {
                     Log.e("QWERTY", "There was error $s")
                 }
-            } catch (e: java.lang.Exception) {
+            } catch (e: SQLException) {
                 Log.e("QWERTY", "There was exception $e")
             }
         }

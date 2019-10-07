@@ -66,4 +66,13 @@ class HomeFragment : Fragment() {
 
         }
     }
+
+    private fun writeToUser(text: String) {
+        val activity = activity as MainActivity
+        val userData = activity.getData()
+        context?.openFileOutput(userData?.get("id").toString(), Context.MODE_APPEND).use {
+            it?.write(("$text\n").toByteArray())
+        }
+    }
+
 }
