@@ -24,6 +24,11 @@ import androidx.navigation.ui.setupWithNavController
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.ObjectInput
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.PreparedStatement
+import java.sql.ResultSet
+import java.sql.SQLException
 
 class MainActivity : AppCompatActivity() {
 
@@ -52,7 +57,7 @@ class MainActivity : AppCompatActivity() {
                     ) !=
                     PackageManager.PERMISSION_GRANTED)
         ) {
-            Log.d("QWERTY",android.Manifest.permission.ACCESS_FINE_LOCATION)
+            Log.d("QWERTY", android.Manifest.permission.ACCESS_FINE_LOCATION)
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
@@ -61,10 +66,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (isNetworkAvailable()) {
-            Log.e("Eroro",intent.extras?.get("picture").toString())
+            Log.e("Eroro", intent.extras?.get("picture").toString())
             if (intent.extras?.get("picture") != null) {
                 val thread = Thread(Worker())
+                val thread2 = Thread(Connection())
                 thread.run()
+                // thread2.run()
             }
         }
     }
@@ -89,6 +96,43 @@ class MainActivity : AppCompatActivity() {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
             val byteArray = stream.toByteArray()
             intent.putExtra("bitmap", byteArray)
+        }
+    }
+
+    inner class Connection : Runnable {
+
+        var name: String = ""
+
+
+        override fun run() {
+            val con: java.sql.Connection
+            var count = 0
+            Log.e("QWERTY", "WE ARE HERE")
+            try {
+                Log.e("QWERTY", "WE ARE HERE2")
+                con = DriverManager.getConnection(
+                "jdbc:mysql://84.249.13.252:3306",
+                "leevi",
+                "projekti123"
+
+                )
+                try {
+                    val sql = "SELECT name FROM cache"
+                    val prest: PreparedStatement = con.prepareStatement(sql)
+                    val rs: ResultSet = prest.executeQuery()
+                    while (rs.next()) {
+                        name = rs.getString(1)
+                        count++
+                        Log.d("QWERTY", name)
+                    }
+                    prest.close()
+                    con.close()
+                } catch (s: SQLException) {
+                    Log.e("QWERTY", "There was error $s")
+                }
+            } catch (e: SQLException) {
+                Log.e("QWERTY", "There was exception $e")
+            }
         }
     }
 }
