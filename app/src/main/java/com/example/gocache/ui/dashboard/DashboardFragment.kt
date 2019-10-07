@@ -38,11 +38,16 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.net.FileNameMap
 import java.net.URL
+import kotlin.math.log
+
+const val FILENAME = "shared1.txt"
 
 
 class DashboardFragment : Fragment(), OnMapReadyCallback {
 
+    lateinit var userId: String
     var closeToCache = false
     private lateinit var mMap: GoogleMap
     private lateinit var cacheList: ArrayList<Cache>
@@ -65,7 +70,10 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         cacheList = ArrayList()
         getAllCaches()
         cacheList.add(Cache("my buss stop",60.227997,24.819641,"aaddfs",false))
-        cacheList.add(Cache("my buss stop2",60.277997,24.899641,"aaddf2s",false))
+        val mainActivity = activity as MainActivity
+        userId = mainActivity.userId
+        //read()
+        write(Cache("my buss stop",60.227997,24.819641,"aaddfs",false))
 
         var locationManager =
             activity!!.getSystemService(LOCATION_SERVICE) as LocationManager
@@ -118,6 +126,49 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         }
 
         return rootView
+    }
+
+    private fun write(cache: Cache){
+        context?.openFileOutput("$userId.txt", Context.MODE_APPEND).use {
+            it?.write(("$cache,").toByteArray())
+        }
+        read()
+    }
+
+    private fun read(){
+        val listFile = context?.openFileInput("$userId.txt")?.bufferedReader().use {
+            it?.readText()?:getString(R.string.read_file_failed)
+        }
+        val a  = listFile.split("),")
+        var i = 0
+        while (i < a.size){
+            var b = a[i]
+            b = b.substringAfter("Cache(")
+            val name = b.substringAfter("name=").substringBefore(",")
+            val latitude = b.substringAfter("latitude=").substringBefore(",").toDouble()
+            val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
+            val id = b.substringAfter("id=").substringBefore(",")
+            val found = b.substringAfter("found=").substringBefore(",").toBoolean()
+            val myCache = Cache(name,latitude,longitude,id,found)
+            if(found){
+                cacheList.forEach{
+                    if(it.id == id){
+                        it.found = true
+                    }else{
+                        cacheList.add(myCache)
+                    }
+                }
+            }
+            Log.d("test",name)
+            Log.d("test",latitude.toString())
+            Log.d("test",longitude.toString())
+            Log.d("test",id)
+            Log.d("test",found.toString())
+            Log.d("test",b)
+            i++
+        }
+        Log.d("test",listFile)
+        //Log.d("test",text)
     }
 
     fun popUp(name: String, comment: String){
