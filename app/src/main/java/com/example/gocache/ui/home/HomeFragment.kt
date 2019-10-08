@@ -1,13 +1,7 @@
 package com.example.gocache.ui.home
 
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.drawable.Drawable
-import android.net.ConnectivityManager
-import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,21 +10,18 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.annotation.NonNull
-import androidx.core.graphics.drawable.toDrawable
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import com.example.gocache.LoginActivity
 import com.example.gocache.MainActivity
 import com.example.gocache.R
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.Task
-import kotlinx.android.synthetic.*
+import com.example.gocache.ui.dashboard.DashboardFragment
+import java.io.File
+import java.net.FileNameMap
+import kotlin.math.log
 
 class HomeFragment : Fragment() {
 
+    private lateinit var cacheList: ArrayList<DashboardFragment.Cache>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,6 +36,7 @@ class HomeFragment : Fragment() {
         Log.d("LoginInfo", myDataFromActivity?.get("name").toString())
         Log.d("LoginInfo", myDataFromActivity?.get("picture").toString())
         textView.text = myDataFromActivity?.get("name").toString()
+        readUser(myDataFromActivity?.get("id").toString())
         val holder: ByteArray? = myDataFromActivity?.getByteArray("bitmap")
         if (holder != null) {
             imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder.size))
@@ -67,12 +59,43 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun writeToUser(text: String) {
-        val activity = activity as MainActivity
-        val userData = activity.getData()
-        context?.openFileOutput(userData?.get("id").toString(), Context.MODE_APPEND).use {
-            it?.write(("$text\n").toByteArray())
+    private fun readUser(userID: String) {
+        val fileName = "$userID.txt"
+        val file = File(fileName)
+        if (file.exists()) {
+            val cacheListOfUser = context?.openFileInput("$userID.txt")?.bufferedReader().use {
+                it?.readText() ?: getString(R.string.file_read)
+            }
+            val a = cacheListOfUser.split("),")
+            var i = 0
+            while (i < a.size) {
+                var b = a[i]
+                b = b.substringAfter("Cache(")
+                val name = b.substringAfter("name=").substringBefore(",")
+                val latitude = b.substringAfter("latitude=").substringBefore(",").toDouble()
+                val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
+                val id = b.substringAfter("id=").substringBefore(",")
+                val found = b.substringAfter("found=").substringBefore(",").toBoolean()
+                val myCache = DashboardFragment.Cache(name, latitude, longitude, id, found)
+                if (found) {
+                    cacheList.forEach {
+                        if (it.id == id) {
+                            it.found = true
+                        } else {
+                            cacheList.add(myCache)
+                        }
+                    }
+                    Log.d("test", name)
+                    Log.d("test", latitude.toString())
+                    Log.d("test", longitude.toString())
+                    Log.d("test", id)
+                    Log.d("test", found.toString())
+                    Log.d("test", b)
+                    i++
+
+                }
+                Log.d("test", cacheListOfUser)
+            }
         }
     }
-
 }
