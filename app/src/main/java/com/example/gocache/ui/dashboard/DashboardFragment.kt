@@ -68,12 +68,14 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
         cacheList = ArrayList()
-        getAllCaches()
+        val activity = activity as MainActivity
+        val myDataFromActivity = activity.getData()
+        userId = myDataFromActivity?.get("id").toString()
         cacheList.add(Cache("my buss stop",60.227997,24.819641,"aaddfs",false))
-        val mainActivity = activity as MainActivity
-        userId = mainActivity.userId
-        //read()
-        write(Cache("my buss stop",60.227997,24.819641,"aaddfs",false))
+        cacheList.add(Cache("My parking slot",60.228291,24.819868,"a22ddfs",false))
+        //write(Cache("Campus",60.258584,24.844100,"asdfa",true))
+        createEmptyFile()
+        getAllCaches()
 
         var locationManager =
             activity!!.getSystemService(LOCATION_SERVICE) as LocationManager
@@ -82,7 +84,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
             override fun onLocationChanged(location: Location?) {
                 var latitude = location!!.latitude
                 var longitude = location!!.longitude
-                Log.i("test", "Latitute: $latitude ; Longitute: $longitude")
+                //Log.i("test", "Latitute: $latitude ; Longitute: $longitude")
 
                 var i = 0
                 //check if caches are nearby
@@ -98,6 +100,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                         if (!cacheList[i].found){
                             Log.d("test", "$distance distance in meters")
                             cacheList[i].found=true
+                            write(cacheList[i])
                             mMap.clear()
                             addAllCacheMarker()
                         }
@@ -128,6 +131,14 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         return rootView
     }
 
+    private fun createEmptyFile(){
+        Log.d("test",userId)
+        context?.openFileOutput("$userId.txt", Context.MODE_APPEND).use {
+            it?.write(("").toByteArray())
+        }
+        read()
+    }
+
     private fun write(cache: Cache){
         context?.openFileOutput("$userId.txt", Context.MODE_APPEND).use {
             it?.write(("$cache,").toByteArray())
@@ -139,35 +150,39 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         val listFile = context?.openFileInput("$userId.txt")?.bufferedReader().use {
             it?.readText()?:getString(R.string.read_file_failed)
         }
-        val a  = listFile.split("),")
-        var i = 0
-        while (i < a.size){
-            var b = a[i]
-            b = b.substringAfter("Cache(")
-            val name = b.substringAfter("name=").substringBefore(",")
-            val latitude = b.substringAfter("latitude=").substringBefore(",").toDouble()
-            val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
-            val id = b.substringAfter("id=").substringBefore(",")
-            val found = b.substringAfter("found=").substringBefore(",").toBoolean()
-            val myCache = Cache(name,latitude,longitude,id,found)
-            if(found){
-                cacheList.forEach{
-                    if(it.id == id){
-                        it.found = true
+        Log.d("test",listFile)
+        if(listFile.length > 10){
+            val a  = listFile.split("),")
+            var i = 0
+            while (i < a.size-1) {
+                var b = a[i]
+                b = b.substringAfter("Cache(")
+                val name = b.substringAfter("name=").substringBefore(",")
+                val latitude = b.substringAfter("latitude=").substringBefore(",").toDouble()
+                val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
+                val id = b.substringAfter("id=").substringBefore(",")
+                val found = b.substringAfter("found=").substringBefore(",").toBoolean()
+                val myCache = Cache(name, latitude, longitude, id, found)
+                if (found) {
+                    val c = cacheList.find { Cache -> Cache.id == id }
+                    if( c != null) {
+                        c.found = true
+                        Log.d("test","the id is same!")
                     }else{
                         cacheList.add(myCache)
                     }
                 }
-            }
-            Log.d("test",name)
-            Log.d("test",latitude.toString())
-            Log.d("test",longitude.toString())
-            Log.d("test",id)
-            Log.d("test",found.toString())
-            Log.d("test",b)
+            //Log.d("test", name)
+            //Log.d("test", latitude.toString())
+            //Log.d("test", longitude.toString())
+            //Log.d("test", id)
+            //Log.d("test", found.toString())
+            Log.d("test", b)
             i++
+            }
+        }else{
+            Log.d("test", "Listfile is empty!")
         }
-        Log.d("test",listFile)
         //Log.d("test",text)
     }
 
@@ -223,27 +238,27 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         mMap = googleMap!!
         mMap.isMyLocationEnabled = true
         mMap.setOnInfoWindowClickListener {
-            Log.d("test",it.title)
+            //Log.d("test",it.title)
             popUp(it.title,"this is the comment")
         }
         val campus = LatLng(60.258584,24.844100)
+        addAllCacheMarker()
        // mMap.addMarker(MarkerOptions().position(campus).title("Marker in Myyrmäki campus"))
         addCacheMarker(Cache("Campus",60.258584,24.844100,"asdfa",false))
-        addCacheMarker(Cache("my buss stop",60.227997,24.819641,"aaddfs",false))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(campus))
+        //mMap.moveCamera(CameraUpdateFactory.newLatLng(campus))
     }
 
     fun addAllCacheMarker(){
-        var i = 0
-        while (i < cacheList.size){
-            addCacheMarker(cacheList[i])
-            i++
+        cacheList.forEach{
+            addCacheMarker(it)
         }
     }
 
     fun addCacheMarker(cache: Cache){
+        //Log.d("test",cache.found.toString())
         //cache has been found
         if(cache.found) {
+            Log.d("test","adding green marker!")
             mMap.addMarker(
                 MarkerOptions()
                     .position(LatLng(cache.latitude, cache.longitude))
@@ -286,6 +301,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun getAllCaches() {
+        Log.d("test","getting all caches")
         val call = DemoApi.service.getNearbyCaches("60|24","UwyAzynurGnFxWBkBjkT")
 
         val value = object : Callback<DemoApi.Model.DataResponse> {
@@ -294,7 +310,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                 Response<DemoApi.Model.DataResponse>?
             ) {
                 if (response != null) {
-                    //Log.d("DBG", "$response")// just for the demo
+                    Log.d("DBG", "$response")// just for the demo
                     var res: DemoApi.Model.DataResponse = response.body()!!
                     getAllCacheInfo(res.results)
                     //Log.d("DBG", "$res")// just for the demo
@@ -308,6 +324,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun getAllCacheInfo(cacheList: ArrayList<String>){
+        Log.d("test","getting all cache info")
         cacheList.forEach {
             getCacheInfo(it)
         }
@@ -329,7 +346,11 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                     val latitude = res.location.substringBefore("|").toDouble()
                     val longitude = res.location.substringAfter("|").toDouble()
                     val cache = Cache(res.name, latitude, longitude, res.code, false)
-                    cacheList.add(cache)
+                    if ( cacheList.any {Cache -> Cache.id == res.code}) {
+                        //cache.found=true
+                    }else{
+                        cacheList.add(cache)
+                    }
                     addCacheMarker(cache)
                 }
             }
