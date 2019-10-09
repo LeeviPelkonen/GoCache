@@ -108,7 +108,7 @@ class HomeFragment : Fragment() {
                 val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
                 val id = b.substringAfter("id=").substringBefore(",")
                 val found = b.substringAfter("found=").substringBefore(",").toBoolean()
-                val myCache = DashboardFragment.Cache(name, latitude, longitude, id, found)
+                val myCache = DashboardFragment.Cache(name, latitude, longitude, id, found, "test")
                 if (found) {
                     cacheList.forEach {
                         if (it.id == id) {

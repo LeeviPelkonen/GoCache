@@ -6,4 +6,11 @@
     <string name="sing_out">Sign out</string>
     <string name="read_file_failed">File reading failed</string>
     <string name="file_read">File reading error</string>
+    <string name="name_for_the_cache">name for the cache</string>
+    <string name="comment_for_the_cache">comment for the cache</string>
+    <string name="cancel">cancel</string>
+    <string name="create">create</string>
+    <string name="create_cache">Create cache</string>
+    <string name="create_a_cache">Create a cache to the current location of your device.</string>
+    <string name="cache_created_by">Cache created by</string>
 </resources>
