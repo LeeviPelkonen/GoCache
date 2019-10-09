@@ -8,6 +8,7 @@ import android.content.Context.LOCATION_SERVICE
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.location.LocationProvider
 import android.os.Bundle
 import android.transition.Slide
 import android.transition.TransitionManager
@@ -21,6 +22,7 @@ import com.example.gocache.R
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_GREEN
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.fragment_dashboard.*
@@ -38,7 +40,9 @@ const val FILENAME = "shared1.txt"
 class DashboardFragment : Fragment(), OnMapReadyCallback {
 
     lateinit var userId: String
+    lateinit var userName: String
     var closeToCache = false
+    var firstOpen = true
     private lateinit var mMap: GoogleMap
     private lateinit var cacheList: ArrayList<Cache>
     private var latitude: Double = 0.0
@@ -63,11 +67,14 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         val activity = activity as MainActivity
         val myDataFromActivity = activity.getData()
         userId = myDataFromActivity?.get("id").toString()
+        userName = myDataFromActivity?.get("name").toString()
         cacheList.add(Cache("my buss stop",60.227997,24.819641,"aaddfs",false, "admin"))
         cacheList.add(Cache("My parking slot",60.228291,24.819868,"a22ddfs",false, "admin"))
         //write(Cache("Campus",60.258584,24.844100,"asdfa",true))
         createEmptyFile()
+        createEmptySharedFile()
         getAllCaches()
+
 
         val addButton = rootView.findViewById<Button>(R.id.addCacheButton)
         addButton?.setOnClickListener {
@@ -82,6 +89,12 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                 latitude = location!!.latitude
                 longitude = location.longitude
                 //Log.i("test", "Latitute: $latitude ; Longitute: $longitude")
+
+                if(firstOpen){
+                    val zoomLevel = 16.0f
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude),zoomLevel))
+                    firstOpen = false
+                    }
 
                 var i = 0
                 //check if caches are nearby
@@ -159,7 +172,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                 val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
                 val id = b.substringAfter("id=").substringBefore(",")
                 val found = b.substringAfter("found=").substringBefore(",").toBoolean()
-                val creator = b.substringAfter("creator=").substringBefore(",").toString()
+                val creator = b.substringAfter("creator=").substringBefore(",")
                 val myCache = Cache(name, latitude, longitude, id, found, creator)
                 if (found) {
                     val c = cacheList.find { Cache -> Cache.id == id }
@@ -180,6 +193,56 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
             //Log.d("test", found.toString())
             Log.d("test", b)
             i++
+            }
+        }else{
+            Log.d("test", "Listfile is empty!")
+        }
+        //Log.d("test",text)
+    }
+
+    private fun createEmptySharedFile(){
+        context?.openFileOutput("shared.txt", Context.MODE_APPEND).use {
+            it?.write(("").toByteArray())
+        }
+        readShared()
+    }
+
+    private fun writeShared(cache: Cache){
+        context?.openFileOutput("shared.txt", Context.MODE_APPEND).use {
+            it?.write(("$cache,").toByteArray())
+        }
+        readShared()
+    }
+
+    private fun readShared(){
+        val listFile = context?.openFileInput("shared.txt")?.bufferedReader().use {
+            it?.readText()?:getString(R.string.read_file_failed)
+        }
+        Log.d("test",listFile)
+        if(listFile.length > 10){
+            val a  = listFile.split("),")
+            var i = 0
+            while (i < a.size-1) {
+                var b = a[i]
+                b = b.substringAfter("Cache(")
+                val name = b.substringAfter("name=").substringBefore(",")
+                val latitude = b.substringAfter("latitude=").substringBefore(",").toDouble()
+                val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
+                val id = b.substringAfter("id=").substringBefore(",")
+                val found = b.substringAfter("found=").substringBefore(",").toBoolean()
+                val creator = b.substringAfter("creator=").substringBefore(",")
+                val myCache = Cache(name, latitude, longitude, id, found, creator)
+                val c = cacheList.find { Cache -> Cache.id == id }
+                if( c == null) {
+                    cacheList.add(myCache)
+                }
+                //Log.d("test", name)
+                //Log.d("test", latitude.toString())
+                //Log.d("test", longitude.toString())
+                //Log.d("test", id)
+                //Log.d("test", found.toString())
+                Log.d("test", b)
+                i++
             }
         }else{
             Log.d("test", "Listfile is empty!")
@@ -228,8 +291,8 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
 
         createButton.setOnClickListener {
             val id = cacheList.size.toString()
-            val myCache = Cache(cacheName.text.toString(),latitude,longitude,id,true,userId)
-            write(myCache)
+            val myCache = Cache(cacheName.text.toString(),latitude,longitude,id,true,userName)
+            writeShared(myCache)
             mMap.clear()
             addAllCacheMarker()
             val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -247,20 +310,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         )
     }
 
-    fun Fragment.hideKeyboard() {
-        view?.let { activity?.hideKeyboard(it) }
-    }
-
-    fun Activity.hideKeyboard() {
-        hideKeyboard(if (currentFocus == null) View(this) else currentFocus)
-    }
-
-    fun Context.hideKeyboard(view: View) {
-        val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
-    }
-
-    fun popUp(name: String, comment: String){
+    fun popUp(name: String, user: String){
         Log.d("test","popup here!")
         // Initialize a new layout inflater instance
         val inflater:LayoutInflater = layoutInflater
@@ -289,9 +339,9 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
 
 
         val cacheName = view.findViewById<TextView>(R.id.cacheName)
-        val cacheComment = view.findViewById<TextView>(R.id.cacheComment)
+        val cacheUsername = view.findViewById<TextView>(R.id.cacheUserName)
         cacheName.text = name
-        cacheComment.text = comment
+        cacheUsername.text = user
 
         view.setOnClickListener {
             popupWindow.dismiss()
@@ -313,13 +363,12 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         mMap.isMyLocationEnabled = true
         mMap.setOnInfoWindowClickListener {
             //Log.d("test",it.title)
-            popUp(it.title,"this is the comment")
+            popUp(it.title,it.snippet)
         }
         val campus = LatLng(60.258584,24.844100)
         addAllCacheMarker()
        // mMap.addMarker(MarkerOptions().position(campus).title("Marker in Myyrmäki campus"))
-        addCacheMarker(Cache("Campus",60.258584,24.844100,"asdfa",false, "admin"))
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(campus))
+       // addCacheMarker(Cache("Campus",60.258584,24.844100,"asdfa",false, "admin"))
     }
 
     fun addAllCacheMarker(){
@@ -336,14 +385,16 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
             mMap.addMarker(
                 MarkerOptions()
                     .position(LatLng(cache.latitude, cache.longitude))
-                    .title(cache.name))
+                    .title(cache.name)
+                    .snippet(cache.creator))
                     .setIcon(BitmapDescriptorFactory.defaultMarker(HUE_GREEN))
             //not found
         }else{
             mMap.addMarker(
                 MarkerOptions()
                     .position(LatLng(cache.latitude, cache.longitude))
-                    .title(cache.name))
+                    .title(cache.name)
+                    .snippet(cache.creator))
         }
     }
 

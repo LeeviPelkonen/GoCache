@@ -12,4 +12,5 @@
     <string name="create">create</string>
     <string name="create_cache">Create cache</string>
     <string name="create_a_cache">Create a cache to the current location of your device.</string>
+    <string name="cache_created_by">Cache created by</string>
 </resources>
