@@ -24,26 +24,27 @@ class HomeFragment : Fragment() {
     private lateinit var cacheList: ArrayList<DashboardFragment.Cache>
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val root = inflater.inflate(R.layout.fragment_home, container, false)
-        val textView: TextView = root.findViewById(R.id.text_home)
-        val imgView: ImageView = root.findViewById(R.id.imageView)
-        val activity = activity as MainActivity
-        val myDataFromActivity = activity.getData()
-        Log.d("LoginInfo", myDataFromActivity?.get("name").toString())
-        Log.d("LoginInfo", myDataFromActivity?.get("picture").toString())
-        textView.text = myDataFromActivity?.get("name").toString()
-        readUser(myDataFromActivity?.get("id").toString())
-        val holder: ByteArray? = myDataFromActivity?.getByteArray("bitmap")
-        if (holder != null) {
-            imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder.size))
-        } else {
-            imgView.setImageResource(R.drawable.ic_mood_black_24dp)
-        }
-        return root
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
+        ): View? {
+            val root = inflater.inflate(R.layout.fragment_home, container, false)
+            val textView: TextView = root.findViewById(R.id.text_home)
+            val imgView: ImageView = root.findViewById(R.id.imageView)
+            val activity = activity as MainActivity
+            val myDataFromActivity = activity.getData()
+            Log.d("LoginInfo", myDataFromActivity?.get("name").toString())
+            Log.d("LoginInfo", myDataFromActivity?.get("picture").toString())
+            textView.text = myDataFromActivity?.get("name").toString()
+            readUser(myDataFromActivity?.get("id").toString())
+        Log.d("QWERTY", myDataFromActivity?.get("id").toString() )
+            val holder: ByteArray? = myDataFromActivity?.getByteArray("bitmap")
+            if (holder != null) {
+                imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder.size))
+            } else {
+                imgView.setImageResource(R.drawable.ic_mood_black_24dp)
+            }
+            return root
 
     }
 
@@ -61,6 +62,7 @@ class HomeFragment : Fragment() {
 
     private fun readUser(userID: String) {
         val fileName = "$userID.txt"
+        Log.d("QWERTY", userID)
         val file = File(fileName)
         if (file.exists()) {
             val cacheListOfUser = context?.openFileInput("$userID.txt")?.bufferedReader().use {
@@ -68,7 +70,7 @@ class HomeFragment : Fragment() {
             }
             val a = cacheListOfUser.split("),")
             var i = 0
-            while (i < a.size) {
+            while (i < a.size-1) {
                 var b = a[i]
                 b = b.substringAfter("Cache(")
                 val name = b.substringAfter("name=").substringBefore(",")
