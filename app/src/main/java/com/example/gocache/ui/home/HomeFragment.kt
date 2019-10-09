@@ -1,56 +1,85 @@
 package com.example.gocache.ui.home
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.example.gocache.LoginActivity
 import com.example.gocache.MainActivity
 import com.example.gocache.R
 import com.example.gocache.ui.dashboard.DashboardFragment
-import java.io.File
+import java.io.*
 import java.net.FileNameMap
 import kotlin.math.log
 
 class HomeFragment : Fragment() {
 
     private lateinit var cacheList: ArrayList<DashboardFragment.Cache>
+    private lateinit var userID: String
+    private lateinit var picFile: File
+    private lateinit var finalImagePath: String
+    private var fileExists = false
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-        ): View? {
-            val root = inflater.inflate(R.layout.fragment_home, container, false)
-            val textView: TextView = root.findViewById(R.id.text_home)
-            val imgView: ImageView = root.findViewById(R.id.imageView)
-            val activity = activity as MainActivity
-            val myDataFromActivity = activity.getData()
-            Log.d("LoginInfo", myDataFromActivity?.get("name").toString())
-            Log.d("LoginInfo", myDataFromActivity?.get("picture").toString())
-            textView.text = myDataFromActivity?.get("name").toString()
-            readUser(myDataFromActivity?.get("id").toString())
-        Log.d("QWERTY", myDataFromActivity?.get("id").toString() )
-            val holder: ByteArray? = myDataFromActivity?.getByteArray("bitmap")
-            if (holder != null) {
-                imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder.size))
-            } else {
-                imgView.setImageResource(R.drawable.ic_mood_black_24dp)
-            }
-            return root
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        val root = inflater.inflate(R.layout.fragment_home, container, false)
+        val textView: TextView = root.findViewById(R.id.text_home)
+        val imgView: ImageView = root.findViewById(R.id.profileImageView)
+        val activity = activity as MainActivity
+        val myDataFromActivity = activity.getData()
+        userID = myDataFromActivity?.get("id").toString()
+        val holder: ByteArray? = myDataFromActivity?.getByteArray("bitmap")
+        val cw = ContextWrapper(activity.applicationContext)
+        val directory = cw.getDir("imageDir", Context.MODE_PRIVATE)
+
+
+        Log.d("LoginInfo", myDataFromActivity?.get("name").toString())
+        Log.d("LoginInfo", myDataFromActivity?.get("picture").toString())
+
+
+        textView.text = myDataFromActivity?.get("name").toString()
+        readUser(myDataFromActivity?.get("id").toString())
+
+
+
+        if (holder != null && fileExists) {
+            imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder.size))
+        } else if (!fileExists) {
+            Log.d("imagePic", "We try to put image")
+
+            imgView.setImageBitmap(loadImageFromStorage(directory.absolutePath))
+
+        } else {
+            imgView.setImageResource(R.drawable.ic_mood_black_24dp)
+        }
+        return root
 
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val logoutbutton = activity?.findViewById<Button>(R.id.sign_out_button)
+        val changePicBut = activity?.findViewById<ImageButton>(R.id.changePic)
+
         logoutbutton?.setOnClickListener {
             LoginActivity().signOut(context!!)
             val loginIntent = Intent(context, LoginActivity::class.java)
@@ -58,6 +87,7 @@ class HomeFragment : Fragment() {
             startActivity(loginIntent)
 
         }
+        changePicBut?.setOnClickListener { changePicture() }
     }
 
     private fun readUser(userID: String) {
@@ -70,7 +100,7 @@ class HomeFragment : Fragment() {
             }
             val a = cacheListOfUser.split("),")
             var i = 0
-            while (i < a.size-1) {
+            while (i < a.size - 1) {
                 var b = a[i]
                 b = b.substringAfter("Cache(")
                 val name = b.substringAfter("name=").substringBefore(",")
@@ -98,6 +128,75 @@ class HomeFragment : Fragment() {
                 }
                 Log.d("test", cacheListOfUser)
             }
+        }
+    }
+
+    private fun changePicture() {
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            takePictureIntent.resolveActivity(activity!!.packageManager)?.also {
+                startActivityForResult(takePictureIntent, 20)
+            }
+        }
+
+
+    }
+
+    private fun saveToInternalStorage(bitmapImage:Bitmap):String {
+        val cw = ContextWrapper(activity!!.applicationContext)
+        val directory = cw.getDir("imageDir", Context.MODE_PRIVATE)
+        val mypath = File(directory, "$userID.jpg")
+        Log.d("imagePic", "this is the path to file $mypath")
+        var fos: FileOutputStream? = null
+        try
+        {
+            fos = FileOutputStream(mypath)
+            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos)
+        }
+        catch (e:Exception) {
+            e.printStackTrace()
+        }
+        finally
+        {
+            try
+            {
+                fos?.close()
+            }
+            catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+        Log.d("imagePic", "this is where image is saved" + directory.absolutePath)
+        return directory.absolutePath
+    }
+
+    private fun loadImageFromStorage(path:String): Bitmap? {
+        try
+        {
+            val f = File(path, "$userID.jpg")
+            Log.d("imagePic", f.absolutePath)
+            if (f.exists()) {
+                fileExists = true
+                Log.d("imagePic", "IT EXISTS")
+            }
+            val b = BitmapFactory.decodeStream(FileInputStream(f))
+            Log.d("imagePic", "this is the decoded$b")
+            return b
+        }
+        catch (e: FileNotFoundException) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (!(requestCode != 20 && resultCode != Activity.RESULT_OK)) {
+            val imgView = activity!!.findViewById(R.id.profileImageView) as ImageView
+            val b = data?.extras!!.get("data") as Bitmap
+            imgView.setImageBitmap(loadImageFromStorage(saveToInternalStorage(b)))
+            Log.d("imagePic", b.toString())
+
         }
     }
 }
