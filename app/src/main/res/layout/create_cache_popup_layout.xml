@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="#ffff">
+
+    <TextView
+        android:textColor="#000000"
+        android:textSize="32sp"
+        android:id="@+id/createTitle"
+        android:text="@string/create_cache"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <EditText
+        android:layout_marginTop="32dp"
+        android:hint="@string/name_for_the_cache"
+        android:id="@+id/createCacheName"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/createTitle"/>
+
+    <TextView
+        android:textColor="#000000"
+        android:textSize="16sp"
+        android:id="@+id/createDescription"
+        android:text="@string/create_a_cache"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/createCacheName"/>
+
+
+    <Button
+        android:layout_marginTop="32dp"
+        android:id="@+id/cancelButton"
+        android:text="@string/cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/createDescription"/>
+
+    <Button
+        android:layout_marginTop="32dp"
+        android:id="@+id/createButton"
+        android:text="@string/create"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/createDescription"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

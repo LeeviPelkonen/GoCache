@@ -1,13 +1,13 @@
 package com.example.gocache.ui.dashboard
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
-import android.text.style.BackgroundColorSpan
 import android.transition.Slide
 import android.transition.TransitionManager
 import android.util.Log
@@ -16,21 +16,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.gocache.MainActivity
 import com.example.gocache.R
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_GREEN
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_dashboard.*
-import kotlinx.android.synthetic.main.popup_layout.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -38,9 +32,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
-import java.net.FileNameMap
-import java.net.URL
-import kotlin.math.log
 
 const val FILENAME = "shared1.txt"
 
@@ -51,8 +42,10 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
     var closeToCache = false
     private lateinit var mMap: GoogleMap
     private lateinit var cacheList: ArrayList<Cache>
+    private var latitude: Double = 0.0
+    private var longitude: Double = 0.0
 
-    data class Cache(val name: String, val latitude: Double, val longitude: Double, val id: String, var found: Boolean)
+    data class Cache(val name: String, val latitude: Double, val longitude: Double, val id: String, var found: Boolean, var creator: String)
 
     companion object {
         var mapFragment : SupportMapFragment?=null
@@ -63,7 +56,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        var rootView = inflater.inflate(R.layout.fragment_dashboard, container, false)
+        val rootView = inflater.inflate(R.layout.fragment_dashboard, container, false)
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
@@ -71,19 +64,24 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         val activity = activity as MainActivity
         val myDataFromActivity = activity.getData()
         userId = myDataFromActivity?.get("id").toString()
-        cacheList.add(Cache("my buss stop",60.227997,24.819641,"aaddfs",false))
-        cacheList.add(Cache("My parking slot",60.228291,24.819868,"a22ddfs",false))
+        cacheList.add(Cache("my buss stop",60.227997,24.819641,"aaddfs",false, "admin"))
+        cacheList.add(Cache("My parking slot",60.228291,24.819868,"a22ddfs",false, "admin"))
         //write(Cache("Campus",60.258584,24.844100,"asdfa",true))
         createEmptyFile()
         getAllCaches()
 
-        var locationManager =
-            activity!!.getSystemService(LOCATION_SERVICE) as LocationManager
+        val addButton = rootView.findViewById<Button>(R.id.addCacheButton)
+        addButton?.setOnClickListener {
+            popUpCreateCache()
+        }
 
-        var locationListener = object : LocationListener {
+        val locationManager =
+            activity.getSystemService(LOCATION_SERVICE) as LocationManager
+
+        val locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location?) {
-                var latitude = location!!.latitude
-                var longitude = location!!.longitude
+                latitude = location!!.latitude
+                longitude = location.longitude
                 //Log.i("test", "Latitute: $latitude ; Longitute: $longitude")
 
                 var i = 0
@@ -105,7 +103,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                             addAllCacheMarker()
                         }
                         closeToCache = true
-                        Log.d("test", "$distance distance in meters to a found cache")
+                        //Log.d("test", "$distance distance in meters to a found cache")
                     }
                     i++
                 }
@@ -123,7 +121,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         }
 
         try {
-            locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener)
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener)
         } catch (ex:SecurityException) {
             Log.d("QWERTY",ex.toString())
         }
@@ -162,7 +160,8 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                 val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
                 val id = b.substringAfter("id=").substringBefore(",")
                 val found = b.substringAfter("found=").substringBefore(",").toBoolean()
-                val myCache = Cache(name, latitude, longitude, id, found)
+                val creator = b.substringAfter("creator=").substringBefore(",").toString()
+                val myCache = Cache(name, latitude, longitude, id, found, creator)
                 if (found) {
                     val c = cacheList.find { Cache -> Cache.id == id }
                     if( c != null) {
@@ -171,6 +170,9 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                     }else{
                         cacheList.add(myCache)
                     }
+                }
+                if (creator == userId){
+                    Log.d("test","i made this cache!")
                 }
             //Log.d("test", name)
             //Log.d("test", latitude.toString())
@@ -184,6 +186,56 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
             Log.d("test", "Listfile is empty!")
         }
         //Log.d("test",text)
+    }
+
+    private fun popUpCreateCache(){
+        Log.d("test","popup here!")
+        // Initialize a new layout inflater instance
+        val inflater:LayoutInflater = layoutInflater
+
+        // Inflate a custom view using layout inflater
+        val view = inflater.inflate(R.layout.create_cache_popup_layout,null)
+
+        // Initialize a new instance of popup window
+        val popupWindow = PopupWindow(
+            view, // Custom view to show in popup window
+            LinearLayout.LayoutParams.MATCH_PARENT, // Width of popup window
+            LinearLayout.LayoutParams.WRAP_CONTENT // Window height
+        )
+
+        // Set an elevation for the popup window
+        popupWindow.elevation = 10.0F
+        // Create a new slide animation for popup window enter transition
+        val slideIn = Slide()
+        slideIn.slideEdge = Gravity.TOP
+        popupWindow.enterTransition = slideIn
+
+        // Slide animation for popup window exit transition
+        val slideOut = Slide()
+        slideOut.slideEdge = Gravity.END
+        popupWindow.exitTransition = slideOut
+
+
+        val cacheName = view.findViewById<EditText>(R.id.createCacheName)
+        val cancelButton = view.findViewById<Button>(R.id.cancelButton)
+        val createButton = view.findViewById<Button>(R.id.createButton)
+
+        cancelButton.setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+        createButton.setOnClickListener {
+
+        }
+
+        // Finally, show the popup window on app
+        TransitionManager.beginDelayedTransition(map_layout)
+        popupWindow.showAtLocation(
+            map_layout, // Location to display popup window
+            Gravity.CENTER, // Exact position of layout to display popup
+            50, // X offset
+            50 // Y offset
+        )
     }
 
     fun popUp(name: String, comment: String){
@@ -244,7 +296,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         val campus = LatLng(60.258584,24.844100)
         addAllCacheMarker()
        // mMap.addMarker(MarkerOptions().position(campus).title("Marker in Myyrmäki campus"))
-        addCacheMarker(Cache("Campus",60.258584,24.844100,"asdfa",false))
+        addCacheMarker(Cache("Campus",60.258584,24.844100,"asdfa",false, "admin"))
         //mMap.moveCamera(CameraUpdateFactory.newLatLng(campus))
     }
 
@@ -297,7 +349,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                 GsonConverterFactory.create())
             .build()
 
-        val service = retrofit.create(Service::class.java)!!
+        val service = retrofit.create(Service::class.java)
     }
 
     private fun getAllCaches() {
@@ -311,7 +363,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
             ) {
                 if (response != null) {
                     Log.d("DBG", "$response")// just for the demo
-                    var res: DemoApi.Model.DataResponse = response.body()!!
+                    val res: DemoApi.Model.DataResponse = response.body()!!
                     getAllCacheInfo(res.results)
                     //Log.d("DBG", "$res")// just for the demo
                 }
@@ -340,15 +392,13 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
             ) {
                 if (response != null) {
                     //Log.d("DBG", "$response")// just for the demo
-                    var res: DemoApi.Model.CacheInfoResponse = response.body()!!
+                    val res: DemoApi.Model.CacheInfoResponse = response.body()!!
 
                     //Log.d("DBG", "$res")// just for the demo
                     val latitude = res.location.substringBefore("|").toDouble()
                     val longitude = res.location.substringAfter("|").toDouble()
-                    val cache = Cache(res.name, latitude, longitude, res.code, false)
-                    if ( cacheList.any {Cache -> Cache.id == res.code}) {
-                        //cache.found=true
-                    }else{
+                    val cache = Cache(res.name, latitude, longitude, res.code, false,"admin")
+                    if ( !cacheList.any {Cache -> Cache.id == res.code}) {
                         cacheList.add(cache)
                     }
                     addCacheMarker(cache)

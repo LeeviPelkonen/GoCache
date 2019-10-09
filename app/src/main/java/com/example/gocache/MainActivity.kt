@@ -58,7 +58,6 @@ class MainActivity : AppCompatActivity() {
                     ) !=
                     PackageManager.PERMISSION_GRANTED)
         ) {
-            Log.d("QWERTY", android.Manifest.permission.ACCESS_FINE_LOCATION)
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
