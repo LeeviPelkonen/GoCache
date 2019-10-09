@@ -38,6 +38,7 @@ class HomeFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_home, container, false)
         val textView: TextView = root.findViewById(R.id.text_home)
+        val emailText: TextView = root.findViewById(R.id.emailText)
         val imgView: ImageView = root.findViewById(R.id.profileImageView)
         val activity = activity as MainActivity
         val myDataFromActivity = activity.getData()
@@ -52,6 +53,7 @@ class HomeFragment : Fragment() {
 
 
         textView.text = myDataFromActivity?.get("name").toString()
+        emailText.text = myDataFromActivity?.get("email").toString()
         createEmptySharedFile()
 
 
