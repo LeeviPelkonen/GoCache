@@ -2,6 +2,7 @@ package com.example.gocache.ui.dashboard
 
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.location.Location
@@ -11,10 +12,8 @@ import android.os.Bundle
 import android.transition.Slide
 import android.transition.TransitionManager
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.fragment.app.Fragment
 import com.example.gocache.MainActivity
@@ -205,6 +204,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
 
         // Set an elevation for the popup window
         popupWindow.elevation = 10.0F
+        popupWindow.isFocusable = true
         // Create a new slide animation for popup window enter transition
         val slideIn = Slide()
         slideIn.slideEdge = Gravity.TOP
@@ -221,11 +221,20 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         val createButton = view.findViewById<Button>(R.id.createButton)
 
         cancelButton.setOnClickListener {
+            val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
             popupWindow.dismiss()
         }
 
         createButton.setOnClickListener {
-
+            val id = cacheList.size.toString()
+            val myCache = Cache(cacheName.text.toString(),latitude,longitude,id,true,userId)
+            write(myCache)
+            mMap.clear()
+            addAllCacheMarker()
+            val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
+            popupWindow.dismiss()
         }
 
         // Finally, show the popup window on app
@@ -233,9 +242,22 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         popupWindow.showAtLocation(
             map_layout, // Location to display popup window
             Gravity.CENTER, // Exact position of layout to display popup
-            50, // X offset
-            50 // Y offset
+            0, // X offset
+            0 // Y offset
         )
+    }
+
+    fun Fragment.hideKeyboard() {
+        view?.let { activity?.hideKeyboard(it) }
+    }
+
+    fun Activity.hideKeyboard() {
+        hideKeyboard(if (currentFocus == null) View(this) else currentFocus)
+    }
+
+    fun Context.hideKeyboard(view: View) {
+        val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
     fun popUp(name: String, comment: String){

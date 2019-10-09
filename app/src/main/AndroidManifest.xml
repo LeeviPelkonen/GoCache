@@ -17,7 +17,9 @@
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="@string/map_key"/>
 
-        <activity android:name=".MainActivity"></activity>
+        <activity android:name=".MainActivity"
+            android:windowSoftInputMode="stateAlwaysVisible">
+        </activity>
 
         <activity
             android:name=".LoginActivity"
