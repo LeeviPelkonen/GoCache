@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         userId = intent?.extras?.get("id").toString()
+        Log.d("QWERTY", userId)
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
         if ((Build.VERSION.SDK_INT >= 23 &&
