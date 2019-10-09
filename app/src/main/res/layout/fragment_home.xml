@@ -11,18 +11,35 @@
         android:layout_height="350dp">
 
         <LinearLayout
+            android:background="@drawable/gradient"
             android:layout_width="match_parent"
             android:layout_height="300dp"
             android:orientation="vertical"
             android:paddingTop="30dp">
 
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal">
+
             <ImageView
-                android:id="@+id/imageView"
+                android:id="@+id/profileImageView"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
                 android:layout_gravity="center_horizontal"
                 android:contentDescription="@string/app_name"
                 tools:srcCompat="@tools:sample/avatars" />
+
+                <ImageButton
+                    android:id="@+id/changePic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@+id/profileImageView"
+                    android:layout_alignEnd="@+id/profileImageView"
+                    android:src="@drawable/ic_create_black_24dp">
+                </ImageButton>
+
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/text_home"
@@ -112,6 +129,8 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingStart="25dp">
+
+
 
             <ImageView
                 android:layout_width="36dp"

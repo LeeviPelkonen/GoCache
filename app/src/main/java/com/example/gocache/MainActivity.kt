@@ -57,10 +57,20 @@ class MainActivity : AppCompatActivity() {
                         android.Manifest.permission.ACCESS_FINE_LOCATION
                     ) !=
                     PackageManager.PERMISSION_GRANTED)
-        ) {
+
+            && ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+            )
+        {
+            Log.d("QWERTY", android.Manifest.permission.ACCESS_FINE_LOCATION)
+
+
+
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.CAMERA),
                 0
             )
         }
