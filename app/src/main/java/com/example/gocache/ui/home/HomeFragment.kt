@@ -6,9 +6,7 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -18,19 +16,16 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.example.gocache.LoginActivity
 import com.example.gocache.MainActivity
 import com.example.gocache.R
 import com.example.gocache.ui.dashboard.DashboardFragment
 import java.io.*
-import java.net.FileNameMap
-import kotlin.math.log
 
 class HomeFragment : Fragment() {
 
-    private lateinit var cacheList: ArrayList<DashboardFragment.Cache>
+    private lateinit var foundCacheList: ArrayList<DashboardFragment.Cache>
     private lateinit var userID: String
     private lateinit var picFile: File
     private lateinit var finalImagePath: String
@@ -57,15 +52,14 @@ class HomeFragment : Fragment() {
 
 
         textView.text = myDataFromActivity?.get("name").toString()
-        readUser(myDataFromActivity?.get("id").toString())
+        createEmptySharedFile()
 
 
 
-        if (holder != null && fileExists) {
+        if (holder != null && loadImageFromStorage(directory.absolutePath) == null) {
             imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder.size))
-        } else if (!fileExists) {
+        } else if (loadImageFromStorage(directory.absolutePath) != null) {
             Log.d("imagePic", "We try to put image")
-
             imgView.setImageBitmap(loadImageFromStorage(directory.absolutePath))
 
         } else {
@@ -90,17 +84,15 @@ class HomeFragment : Fragment() {
         changePicBut?.setOnClickListener { changePicture() }
     }
 
-    private fun readUser(userID: String) {
-        val fileName = "$userID.txt"
-        Log.d("QWERTY", userID)
-        val file = File(fileName)
-        if (file.exists()) {
-            val cacheListOfUser = context?.openFileInput("$userID.txt")?.bufferedReader().use {
-                it?.readText() ?: getString(R.string.file_read)
-            }
-            val a = cacheListOfUser.split("),")
+    private fun readUser(){
+        val listFile = context?.openFileInput("$userID.txt")?.bufferedReader().use {
+            it?.readText()?:getString(R.string.read_file_failed)
+        }
+        Log.d("test",listFile)
+        if(listFile.length > 10){
+            val a  = listFile.split("),")
             var i = 0
-            while (i < a.size - 1) {
+            while (i < a.size-1) {
                 var b = a[i]
                 b = b.substringAfter("Cache(")
                 val name = b.substringAfter("name=").substringBefore(",")
@@ -108,27 +100,34 @@ class HomeFragment : Fragment() {
                 val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
                 val id = b.substringAfter("id=").substringBefore(",")
                 val found = b.substringAfter("found=").substringBefore(",").toBoolean()
-                val myCache = DashboardFragment.Cache(name, latitude, longitude, id, found, "test")
+                val creator = b.substringAfter("creator=").substringBefore(",")
+                val myCache = DashboardFragment.Cache(name, latitude, longitude, id, found, creator)
                 if (found) {
-                    cacheList.forEach {
-                        if (it.id == id) {
-                            it.found = true
-                        } else {
-                            cacheList.add(myCache)
-                        }
+                    val c = foundCacheList.find { Cache -> Cache.id == id }
+                    if( c != null) {
+                        c.found = true
+                        Log.d("test","the id is same!")
+                    }else{
+                        foundCacheList.add(myCache)
                     }
-                    Log.d("test", name)
-                    Log.d("test", latitude.toString())
-                    Log.d("test", longitude.toString())
-                    Log.d("test", id)
-                    Log.d("test", found.toString())
-                    Log.d("test", b)
-                    i++
-
                 }
-                Log.d("test", cacheListOfUser)
+                if (creator == userID){
+                    Log.d("test","i made this cache!")
+                }
+
+                Log.d("test", b)
+                i++
             }
+        }else{
+            Log.d("test", "Listfile is empty!")
         }
+    }
+
+    private fun createEmptySharedFile(){
+        context?.openFileOutput("$userID.txt", Context.MODE_APPEND).use {
+            it?.write(("").toByteArray())
+        }
+        readUser()
     }
 
     private fun changePicture() {
@@ -175,12 +174,10 @@ class HomeFragment : Fragment() {
             val f = File(path, "$userID.jpg")
             Log.d("imagePic", f.absolutePath)
             if (f.exists()) {
-                fileExists = true
+                this.fileExists = true
                 Log.d("imagePic", "IT EXISTS")
             }
-            val b = BitmapFactory.decodeStream(FileInputStream(f))
-            Log.d("imagePic", "this is the decoded$b")
-            return b
+            return BitmapFactory.decodeStream(FileInputStream(f))
         }
         catch (e: FileNotFoundException) {
             e.printStackTrace()
