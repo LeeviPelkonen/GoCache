@@ -25,7 +25,8 @@ import java.io.*
 
 class HomeFragment : Fragment() {
 
-    private lateinit var cacheList: ArrayList<DashboardFragment.Cache>
+    private lateinit var foundCacheList: ArrayList<DashboardFragment.Cache>
+    private lateinit var createdCacheList: ArrayList<DashboardFragment.Cache>
     private lateinit var userID: String
     private lateinit var picFile: File
     private lateinit var finalImagePath: String
@@ -38,10 +39,15 @@ class HomeFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_home, container, false)
         val textView: TextView = root.findViewById(R.id.text_home)
+        val emailText: TextView = root.findViewById(R.id.emailText)
         val imgView: ImageView = root.findViewById(R.id.profileImageView)
+        val cacheCoutn: TextView = root.findViewById(R.id.caches_found_am)
+        val cacheHidCount: TextView = root.findViewById(R.id.caches_hidden_am)
         val activity = activity as MainActivity
         val myDataFromActivity = activity.getData()
         userID = myDataFromActivity?.get("id").toString()
+        foundCacheList = ArrayList()
+        createdCacheList = ArrayList()
         val holder: ByteArray? = myDataFromActivity?.getByteArray("bitmap")
         val cw = ContextWrapper(activity.applicationContext)
         val directory = cw.getDir("imageDir", Context.MODE_PRIVATE)
@@ -52,15 +58,26 @@ class HomeFragment : Fragment() {
 
 
         textView.text = myDataFromActivity?.get("name").toString()
-        readUser(myDataFromActivity?.get("id").toString())
+        emailText.text = myDataFromActivity?.get("email").toString()
+        createEmptySharedFile()
+        createEmptyUserFile()
+        write(DashboardFragment.Cache(
+            "My parking slot",
+            60.228291,
+            24.819868,
+            "a22ddfs",
+            true,
+            "admin"
+        ))
+        cacheCoutn.text = foundCacheList.size.toString()
+        cacheHidCount.text = createdCacheList.size.toString()
 
 
 
-        if (holder != null && fileExists) {
+        if (holder != null && loadImageFromStorage(directory.absolutePath) == null) {
             imgView.setImageBitmap(BitmapFactory.decodeByteArray(holder, 0, holder.size))
-        } else if (!fileExists) {
+        } else if (loadImageFromStorage(directory.absolutePath) != null) {
             Log.d("imagePic", "We try to put image")
-
             imgView.setImageBitmap(loadImageFromStorage(directory.absolutePath))
 
         } else {
@@ -85,15 +102,15 @@ class HomeFragment : Fragment() {
         changePicBut?.setOnClickListener { changePicture() }
     }
 
-    private fun readUser(userID: String) {
-        val fileName = "$userID.txt"
-        Log.d("QWERTY", userID)
-        val file = File(fileName)
-        if (file.exists()) {
-            val cacheListOfUser = context?.openFileInput("$userID.txt")?.bufferedReader().use {
-                it?.readText() ?: getString(R.string.file_read)
-            }
-            val a = cacheListOfUser.split("),")
+    // After this there are read and write for UserID and shared text files
+
+    private fun readUserCreated() {
+        val listFile = context?.openFileInput("shared.txt")?.bufferedReader().use {
+            it?.readText() ?: getString(R.string.read_file_failed)
+        }
+        Log.d("testingg", listFile)
+        if (listFile.isNotEmpty()) {
+            val a = listFile.split("),")
             var i = 0
             while (i < a.size - 1) {
                 var b = a[i]
@@ -103,28 +120,92 @@ class HomeFragment : Fragment() {
                 val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
                 val id = b.substringAfter("id=").substringBefore(",")
                 val found = b.substringAfter("found=").substringBefore(",").toBoolean()
-                val myCache = DashboardFragment.Cache(name, latitude, longitude, id, found, "test")
+                val creator = b.substringAfter("creator=").substringBefore(",")
+                val myCache = DashboardFragment.Cache(name, latitude, longitude, id, found, creator)
                 if (found) {
-                    cacheList.forEach {
-                        if (it.id == id) {
-                            it.found = true
-                        } else {
-                            cacheList.add(myCache)
-                        }
+                    val c = createdCacheList.find { Cache -> Cache.id == id }
+                    if (c != null) {
+                        c.found = true
+                        Log.d("test", "the id is same!")
+                    } else {
+                        createdCacheList.add(myCache)
+                        Log.d("testASD", createdCacheList.size.toString())
                     }
-                    Log.d("test", name)
-                    Log.d("test", latitude.toString())
-                    Log.d("test", longitude.toString())
-                    Log.d("test", id)
-                    Log.d("test", found.toString())
-                    Log.d("test", b)
-                    i++
-
                 }
-                Log.d("test", cacheListOfUser)
+                if (creator == userID) {
+                    Log.d("test", "i made this cache!")
+                }
+
+                Log.d("test", b)
+                i++
             }
+        } else {
+            Log.d("test", "Listfile is empty!")
         }
     }
+
+    private fun readUserFound() {
+        val listFile = context?.openFileInput("$userID.txt")?.bufferedReader().use {
+            it?.readText() ?: getString(R.string.read_file_failed)
+        }
+        Log.d("testingg", listFile)
+        if (listFile.isNotEmpty()) {
+            val a = listFile.split("),")
+            var i = 0
+            while (i < a.size - 1) {
+                var b = a[i]
+                b = b.substringAfter("Cache(")
+                val name = b.substringAfter("name=").substringBefore(",")
+                val latitude = b.substringAfter("latitude=").substringBefore(",").toDouble()
+                val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
+                val id = b.substringAfter("id=").substringBefore(",")
+                val found = b.substringAfter("found=").substringBefore(",").toBoolean()
+                val creator = b.substringAfter("creator=").substringBefore(",")
+                val myCache = DashboardFragment.Cache(name, latitude, longitude, id, found, creator)
+                if (found) {
+                    val c = foundCacheList.find { Cache -> Cache.id == id }
+                    if (c != null) {
+                        c.found = true
+                        Log.d("usertest", "the id is same!")
+                    } else {
+                        foundCacheList.add(myCache)
+                        Log.d("usertest", foundCacheList.size.toString())
+                    }
+                }
+                if (creator == userID) {
+                    Log.d("userusertest", "i made this cache!")
+                }
+
+                Log.d("usertest", b)
+                i++
+            }
+        } else {
+            Log.d("usertest", "Listfile is empty!")
+        }
+    }
+
+    private fun write(cache: DashboardFragment.Cache) {
+        context?.openFileOutput("$userID.txt", Context.MODE_APPEND).use {
+            it?.write(("$cache,").toByteArray())
+        }
+        readUserFound()
+    }
+
+    private fun createEmptySharedFile() {
+        context?.openFileOutput("shared.txt", Context.MODE_APPEND).use {
+            it?.write(("").toByteArray())
+        }
+        readUserCreated()
+    }
+
+    private fun createEmptyUserFile() {
+        context?.openFileOutput("$userID.txt", Context.MODE_APPEND).use {
+            it?.write(("").toByteArray())
+        }
+        readUserFound()
+    }
+
+    //Changing the profile pic
 
     private fun changePicture() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
@@ -136,27 +217,23 @@ class HomeFragment : Fragment() {
 
     }
 
-    private fun saveToInternalStorage(bitmapImage:Bitmap):String {
+    //Save the picture to internal storage
+
+    private fun saveToInternalStorage(bitmapImage: Bitmap): String {
         val cw = ContextWrapper(activity!!.applicationContext)
         val directory = cw.getDir("imageDir", Context.MODE_PRIVATE)
         val mypath = File(directory, "$userID.jpg")
         Log.d("imagePic", "this is the path to file $mypath")
         var fos: FileOutputStream? = null
-        try
-        {
+        try {
             fos = FileOutputStream(mypath)
             bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos)
-        }
-        catch (e:Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
-        }
-        finally
-        {
-            try
-            {
+        } finally {
+            try {
                 fos?.close()
-            }
-            catch (e: IOException) {
+            } catch (e: IOException) {
                 e.printStackTrace()
             }
         }
@@ -164,25 +241,24 @@ class HomeFragment : Fragment() {
         return directory.absolutePath
     }
 
-    private fun loadImageFromStorage(path:String): Bitmap? {
-        try
-        {
+    //Load the saved picture from internal storage
+
+    private fun loadImageFromStorage(path: String): Bitmap? {
+        try {
             val f = File(path, "$userID.jpg")
             Log.d("imagePic", f.absolutePath)
             if (f.exists()) {
-                fileExists = true
+                this.fileExists = true
                 Log.d("imagePic", "IT EXISTS")
             }
-            val b = BitmapFactory.decodeStream(FileInputStream(f))
-            Log.d("imagePic", "this is the decoded$b")
-            return b
-        }
-        catch (e: FileNotFoundException) {
+            return BitmapFactory.decodeStream(FileInputStream(f))
+        } catch (e: FileNotFoundException) {
             e.printStackTrace()
         }
         return null
     }
 
+    //Start camera
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

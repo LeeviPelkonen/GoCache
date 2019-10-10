@@ -14,4 +14,5 @@
     <string name="create_a_cache">Create a cache to the current location of your device.</string>
     <string name="cache_created_by">Cache created by</string>
     <string name="title_map">Map</string>
+    <string name="caches_fount">Amount</string>
 </resources>
