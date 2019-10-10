@@ -26,6 +26,7 @@ import java.io.*
 class HomeFragment : Fragment() {
 
     private lateinit var foundCacheList: ArrayList<DashboardFragment.Cache>
+    private lateinit var createdCacheList: ArrayList<DashboardFragment.Cache>
     private lateinit var userID: String
     private lateinit var picFile: File
     private lateinit var finalImagePath: String
@@ -40,9 +41,13 @@ class HomeFragment : Fragment() {
         val textView: TextView = root.findViewById(R.id.text_home)
         val emailText: TextView = root.findViewById(R.id.emailText)
         val imgView: ImageView = root.findViewById(R.id.profileImageView)
+        val cacheCoutn: TextView = root.findViewById(R.id.caches_found_am)
+        val cacheHidCount: TextView = root.findViewById(R.id.caches_hidden_am)
         val activity = activity as MainActivity
         val myDataFromActivity = activity.getData()
         userID = myDataFromActivity?.get("id").toString()
+        foundCacheList = ArrayList()
+        createdCacheList = ArrayList()
         val holder: ByteArray? = myDataFromActivity?.getByteArray("bitmap")
         val cw = ContextWrapper(activity.applicationContext)
         val directory = cw.getDir("imageDir", Context.MODE_PRIVATE)
@@ -55,6 +60,17 @@ class HomeFragment : Fragment() {
         textView.text = myDataFromActivity?.get("name").toString()
         emailText.text = myDataFromActivity?.get("email").toString()
         createEmptySharedFile()
+        createEmptyUserFile()
+        write(DashboardFragment.Cache(
+            "My parking slot",
+            60.228291,
+            24.819868,
+            "a22ddfs",
+            true,
+            "admin"
+        ))
+        cacheCoutn.text = foundCacheList.size.toString()
+        cacheHidCount.text = createdCacheList.size.toString()
 
 
 
@@ -86,15 +102,57 @@ class HomeFragment : Fragment() {
         changePicBut?.setOnClickListener { changePicture() }
     }
 
-    private fun readUser(){
-        val listFile = context?.openFileInput("$userID.txt")?.bufferedReader().use {
-            it?.readText()?:getString(R.string.read_file_failed)
+    // After this there are read and write for UserID and shared text files
+
+    private fun readUserCreated() {
+        val listFile = context?.openFileInput("shared.txt")?.bufferedReader().use {
+            it?.readText() ?: getString(R.string.read_file_failed)
         }
-        Log.d("test",listFile)
-        if(listFile.length > 10){
-            val a  = listFile.split("),")
+        Log.d("testingg", listFile)
+        if (listFile.isNotEmpty()) {
+            val a = listFile.split("),")
             var i = 0
-            while (i < a.size-1) {
+            while (i < a.size - 1) {
+                var b = a[i]
+                b = b.substringAfter("Cache(")
+                val name = b.substringAfter("name=").substringBefore(",")
+                val latitude = b.substringAfter("latitude=").substringBefore(",").toDouble()
+                val longitude = b.substringAfter("longitude=").substringBefore(",").toDouble()
+                val id = b.substringAfter("id=").substringBefore(",")
+                val found = b.substringAfter("found=").substringBefore(",").toBoolean()
+                val creator = b.substringAfter("creator=").substringBefore(",")
+                val myCache = DashboardFragment.Cache(name, latitude, longitude, id, found, creator)
+                if (found) {
+                    val c = createdCacheList.find { Cache -> Cache.id == id }
+                    if (c != null) {
+                        c.found = true
+                        Log.d("test", "the id is same!")
+                    } else {
+                        createdCacheList.add(myCache)
+                        Log.d("testASD", createdCacheList.size.toString())
+                    }
+                }
+                if (creator == userID) {
+                    Log.d("test", "i made this cache!")
+                }
+
+                Log.d("test", b)
+                i++
+            }
+        } else {
+            Log.d("test", "Listfile is empty!")
+        }
+    }
+
+    private fun readUserFound() {
+        val listFile = context?.openFileInput("$userID.txt")?.bufferedReader().use {
+            it?.readText() ?: getString(R.string.read_file_failed)
+        }
+        Log.d("testingg", listFile)
+        if (listFile.isNotEmpty()) {
+            val a = listFile.split("),")
+            var i = 0
+            while (i < a.size - 1) {
                 var b = a[i]
                 b = b.substringAfter("Cache(")
                 val name = b.substringAfter("name=").substringBefore(",")
@@ -106,31 +164,48 @@ class HomeFragment : Fragment() {
                 val myCache = DashboardFragment.Cache(name, latitude, longitude, id, found, creator)
                 if (found) {
                     val c = foundCacheList.find { Cache -> Cache.id == id }
-                    if( c != null) {
+                    if (c != null) {
                         c.found = true
-                        Log.d("test","the id is same!")
-                    }else{
+                        Log.d("usertest", "the id is same!")
+                    } else {
                         foundCacheList.add(myCache)
+                        Log.d("usertest", foundCacheList.size.toString())
                     }
                 }
-                if (creator == userID){
-                    Log.d("test","i made this cache!")
+                if (creator == userID) {
+                    Log.d("userusertest", "i made this cache!")
                 }
 
-                Log.d("test", b)
+                Log.d("usertest", b)
                 i++
             }
-        }else{
-            Log.d("test", "Listfile is empty!")
+        } else {
+            Log.d("usertest", "Listfile is empty!")
         }
     }
 
-    private fun createEmptySharedFile(){
+    private fun write(cache: DashboardFragment.Cache) {
+        context?.openFileOutput("$userID.txt", Context.MODE_APPEND).use {
+            it?.write(("$cache,").toByteArray())
+        }
+        readUserFound()
+    }
+
+    private fun createEmptySharedFile() {
+        context?.openFileOutput("shared.txt", Context.MODE_APPEND).use {
+            it?.write(("").toByteArray())
+        }
+        readUserCreated()
+    }
+
+    private fun createEmptyUserFile() {
         context?.openFileOutput("$userID.txt", Context.MODE_APPEND).use {
             it?.write(("").toByteArray())
         }
-        readUser()
+        readUserFound()
     }
+
+    //Changing the profile pic
 
     private fun changePicture() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
@@ -142,27 +217,23 @@ class HomeFragment : Fragment() {
 
     }
 
-    private fun saveToInternalStorage(bitmapImage:Bitmap):String {
+    //Save the picture to internal storage
+
+    private fun saveToInternalStorage(bitmapImage: Bitmap): String {
         val cw = ContextWrapper(activity!!.applicationContext)
         val directory = cw.getDir("imageDir", Context.MODE_PRIVATE)
         val mypath = File(directory, "$userID.jpg")
         Log.d("imagePic", "this is the path to file $mypath")
         var fos: FileOutputStream? = null
-        try
-        {
+        try {
             fos = FileOutputStream(mypath)
             bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos)
-        }
-        catch (e:Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
-        }
-        finally
-        {
-            try
-            {
+        } finally {
+            try {
                 fos?.close()
-            }
-            catch (e: IOException) {
+            } catch (e: IOException) {
                 e.printStackTrace()
             }
         }
@@ -170,9 +241,10 @@ class HomeFragment : Fragment() {
         return directory.absolutePath
     }
 
-    private fun loadImageFromStorage(path:String): Bitmap? {
-        try
-        {
+    //Load the saved picture from internal storage
+
+    private fun loadImageFromStorage(path: String): Bitmap? {
+        try {
             val f = File(path, "$userID.jpg")
             Log.d("imagePic", f.absolutePath)
             if (f.exists()) {
@@ -180,13 +252,13 @@ class HomeFragment : Fragment() {
                 Log.d("imagePic", "IT EXISTS")
             }
             return BitmapFactory.decodeStream(FileInputStream(f))
-        }
-        catch (e: FileNotFoundException) {
+        } catch (e: FileNotFoundException) {
             e.printStackTrace()
         }
         return null
     }
 
+    //Start camera
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

@@ -50,12 +50,12 @@ class LoginActivity : AppCompatActivity() {
         super.onStart()
 
         val account = GoogleSignIn.getLastSignedInAccount(this)
+        Log.d("accountT", account.toString())
 
         if (account != null) {
             Log.d("LoginInfo", "Using last account to sign in")
             updateUI(account)
-        }
-        else {
+        } else {
 
         }
     }
@@ -89,8 +89,14 @@ class LoginActivity : AppCompatActivity() {
 
     private fun updateUI(v: GoogleSignInAccount) {
         val info = Bundle()
-        info.putString("name", v.displayName)
-        info.putString("email", v.email)
+        Log.d("username", v.displayName)
+        if (v.displayName != null) {
+            info.putString("name", v.displayName)
+            info.putString("email", v.email)
+        } else {
+            info.putString("name", v.email)
+            info.putString("email", v.email)
+        }
         if (v.photoUrl != null) {
             info.putString("picture", v.photoUrl.toString())
         }
@@ -101,7 +107,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     fun signOut(context: Context) {
-        Log.d("LoginInfo","pressed Signout" )
+        Log.d("LoginInfo", "pressed Signout")
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .build()
