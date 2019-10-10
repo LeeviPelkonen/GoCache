@@ -17,6 +17,7 @@ import android.widget.*
 import androidx.fragment.app.Fragment
 import com.example.gocache.MainActivity
 import com.example.gocache.R
+import com.example.gocache.ui.settings.SettingsFragment
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_GREEN
@@ -40,6 +41,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
     lateinit var userName: String
     var closeToCache = false
     var firstOpen = true
+    var trackerMode = false
     private lateinit var mMap: GoogleMap
     private lateinit var cacheList: ArrayList<Cache>
     private var latitude: Double = 0.0
@@ -57,7 +59,6 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         val rootView = inflater.inflate(R.layout.fragment_map, container, false)
-
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
         cacheList = ArrayList()
@@ -69,7 +70,6 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         createEmptyFile()
         createMyCaches()
         getAllCaches()
-
 
         val addButton = rootView.findViewById<Button>(R.id.addCacheButton)
         addButton?.setOnClickListener {
@@ -90,6 +90,9 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude),zoomLevel))
                     firstOpen = false
                     }
+                if(trackerMode){
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(latitude, longitude)))
+                }
 
                 var i = 0
                 //check if caches are nearby
@@ -389,6 +392,12 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         }
         val campus = LatLng(60.258584,24.844100)
         addAllCacheMarker()
+        mMap.setOnMapLongClickListener{
+            trackerMode = true
+        }
+        mMap.setOnCameraMoveListener {
+            trackerMode = false
+        }
        // mMap.addMarker(MarkerOptions().position(campus).title("Marker in Myyrmäki campus"))
        // addCacheMarker(Cache("Campus",60.258584,24.844100,"asdfa",false, "admin"))
     }

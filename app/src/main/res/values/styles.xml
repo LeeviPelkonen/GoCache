@@ -3,9 +3,29 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">@color/colorPrimaryL</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkL</item>
+        <item name="colorAccent">@color/colorAccentL</item>
+        <item name="backgroundcolor">@color/colorBackgroundL</item>
+        <item name="cardackgroundcolor">@color/colorBackgroundL</item>
+        <item name="textcolor">#1B1B1B</item>
+        <item name="tintcolor">@color/colorBackgroundL</item>
+        <item name="buttoncolor">@color/colorPrimaryL</item>
+
+    </style>
+
+    <!-- Dark theme. -->
+    <style name="DarkTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimaryD</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkD</item>
+        <item name="colorAccent">@color/colorAccentD</item>
+        <item name="backgroundcolor">@color/colorBackgroundD</item>
+        <item name="cardackgroundcolor">@color/colorBackgroundD</item>
+        <item name="textcolor">#C2C2C2</item>
+        <item name="tintcolor">@color/colorBackgroundD</item>
+        <item name="buttoncolor">@color/colorPrimaryD</item>
     </style>
 
 </resources>

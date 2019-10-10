@@ -5,10 +5,10 @@
     android:orientation="vertical" android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="#ffff">
+    android:background="?attr/backgroundcolor">
 
     <TextView
-        android:textColor="#000000"
+        android:textColor="?attr/textcolor"
         android:textSize="32sp"
         android:id="@+id/createTitle"
         android:text="@string/create_cache"
@@ -19,6 +19,7 @@
         app:layout_constraintTop_toTopOf="parent"/>
 
     <EditText
+        android:textColor="?attr/textcolor"
         android:layout_marginTop="32dp"
         android:hint="@string/name_for_the_cache"
         android:id="@+id/createCacheName"
@@ -32,7 +33,7 @@
         android:focusableInTouchMode="true"/>
 
     <TextView
-        android:textColor="#000000"
+        android:textColor="?attr/textcolor"
         android:textSize="16sp"
         android:id="@+id/createDescription"
         android:text="@string/create_a_cache"
@@ -44,6 +45,8 @@
 
 
     <Button
+        android:background="?attr/backgroundcolor"
+        android:textColor="?attr/textcolor"
         android:layout_marginTop="32dp"
         android:id="@+id/cancelButton"
         android:text="@string/cancel"
@@ -53,6 +56,8 @@
         app:layout_constraintTop_toBottomOf="@id/createDescription"/>
 
     <Button
+        android:background="?attr/backgroundcolor"
+        android:textColor="?attr/textcolor"
         android:layout_marginTop="32dp"
         android:id="@+id/createButton"
         android:text="@string/create"

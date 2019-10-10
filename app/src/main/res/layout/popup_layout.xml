@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="wrap_content"
     android:layout_height="match_parent"
-    android:background="#ffff">
+    android:background="?attr/backgroundcolor">
 
     <TextView
+        android:textColor="?attr/textcolor"
         android:id="@+id/cacheName"
         android:textSize="32sp"
         android:layout_width="wrap_content"
@@ -18,6 +19,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
+        android:textColor="?attr/textcolor"
         android:text="@string/cache_created_by"
         android:layout_marginTop="32dp"
         android:id="@+id/cacheUserNameTxt"
@@ -30,6 +32,7 @@
         app:layout_constraintTop_toBottomOf="@id/cacheName"/>
 
     <TextView
+        android:textColor="?attr/textcolor"
         android:id="@+id/cacheUserName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
