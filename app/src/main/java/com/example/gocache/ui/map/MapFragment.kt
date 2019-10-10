@@ -1,14 +1,12 @@
-package com.example.gocache.ui.dashboard
+package com.example.gocache.ui.map
 
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.location.LocationProvider
 import android.os.Bundle
 import android.transition.Slide
 import android.transition.TransitionManager
@@ -22,10 +20,9 @@ import com.example.gocache.R
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_GREEN
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.android.synthetic.main.fragment_dashboard.*
+import kotlinx.android.synthetic.main.fragment_map.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -59,7 +56,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        val rootView = inflater.inflate(R.layout.fragment_dashboard, container, false)
+        val rootView = inflater.inflate(R.layout.fragment_map, container, false)
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
@@ -68,11 +65,9 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         val myDataFromActivity = activity.getData()
         userId = myDataFromActivity?.get("id").toString()
         userName = myDataFromActivity?.get("name").toString()
-        cacheList.add(Cache("my buss stop",60.227997,24.819641,"aaddfs",false, "admin"))
-        cacheList.add(Cache("My parking slot",60.228291,24.819868,"a22ddfs",false, "admin"))
-        //write(Cache("Campus",60.258584,24.844100,"asdfa",true))
-        createEmptyFile()
         createEmptySharedFile()
+        createEmptyFile()
+        createMyCaches()
         getAllCaches()
 
 
@@ -139,6 +134,33 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
         }
 
         return rootView
+    }
+
+    private fun createMyCaches(){
+        cacheList.add(Cache("my buss stop",60.227997,24.819641,"aaddfs",false, "admin"))
+        cacheList.add(Cache("RIP in peace leppävaara campus",60.221733,24.805135,"a23",false, "admin"))
+        cacheList.add(Cache("Myyrmäki cache",60.258887,24.844824,"a24",false, "admin"))
+        cacheList.add(Cache("Round and a round we go",60.258204,24.842462,"a25",false, "admin"))
+        cacheList.add(Cache("Parking cache",60.260545,24.841673,"a26",false, "admin"))
+        cacheList.add(Cache("Crossroads",60.256973,24.845893,"a27",false, "admin"))
+        cacheList.add(Cache("Under the Bridge",60.227781,24.824763,"a28",false, "admin"))
+        cacheList.add(Cache("On top of the hill",60.224239,24.816775,"a29",false, "admin"))
+        cacheList.add(Cache("big view",60.227526,24.807609,"a30",false, "admin"))
+        cacheList.add(Cache("555",60.229005,24.813852,"a31",false, "admin"))
+        cacheList.add(Cache("Alepa",60.234458,24.814317,"a32",false, "admin"))
+        cacheList.add(Cache("Circle",60.237793,24.821788,"a33",false, "admin"))
+        cacheList.add(Cache("Krenaatööri",60.238849,24.833679,"a34",false, "admin"))
+        cacheList.add(Cache("Tvisveds",60.242186,24.841455,"a35",false, "admin"))
+        cacheList.add(Cache("Malmgård",60.251003,24.844174,"a36",false, "admin"))
+        cacheList.add(Cache("Von Glan",60.246974,24.866870,"a37",false, "admin"))
+        cacheList.add(Cache("keep rolling",60.240669,24.856829,"a38",false, "admin"))
+        cacheList.add(Cache("Runar Schildts",60.231727,24.888292,"a39",false, "admin"))
+        cacheList.add(Cache("Aino Achtes",60.225498,24.888720,"a40",false, "admin"))
+        cacheList.add(Cache("Boulodrome",60.222574,24.966284,"a41",false, "admin"))
+        cacheList.add(Cache("Oulunkylä park",60.227333,24.968155,"a42",false, "admin"))
+        cacheList.add(Cache("Patomäki park",60.234020,24.967689,"a43",false, "admin"))
+        cacheList.add(Cache("Vallila park",60.199000,24.957134,"a44",false, "admin"))
+        cacheList.add(Cache("Katri Vala",60.187076,24.963398,"a45",false, "admin"))
     }
 
     private fun createEmptyFile(){
@@ -231,7 +253,7 @@ class DashboardFragment : Fragment(), OnMapReadyCallback {
                 val id = b.substringAfter("id=").substringBefore(",")
                 val found = b.substringAfter("found=").substringBefore(",").toBoolean()
                 val creator = b.substringAfter("creator=").substringBefore(",")
-                val myCache = Cache(name, latitude, longitude, id, found, creator)
+                val myCache = Cache(name, latitude, longitude, id, false, creator)
                 val c = cacheList.find { Cache -> Cache.id == id }
                 if( c == null) {
                     cacheList.add(myCache)

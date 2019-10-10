@@ -6,9 +6,7 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -18,15 +16,12 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.example.gocache.LoginActivity
 import com.example.gocache.MainActivity
 import com.example.gocache.R
-import com.example.gocache.ui.dashboard.DashboardFragment
+import com.example.gocache.ui.map.DashboardFragment
 import java.io.*
-import java.net.FileNameMap
-import kotlin.math.log
 
 class HomeFragment : Fragment() {
 
